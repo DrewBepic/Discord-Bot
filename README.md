@@ -1,2 +1,2 @@
 # Discord-Bot
-A discord bot I made for fun
+A discord bot I made for fun (retired)
