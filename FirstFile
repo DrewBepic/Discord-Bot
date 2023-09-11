@@ -1,0 +1,17 @@
+import javax.security.auth.login.LoginException;
+
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
+
+public class BotTest {
+	public static void main(String[] args) throws LoginException {
+		
+		JDABuilder jda = JDABuilder.createDefault("OTM3MDg1NDM0NTc0NTQ5MDYy.GKAyyt.jkPfRij2-qDfEfmdY3DdhNY4rxebAbUOebwEik");
+		jda.setActivity(Activity.playing("Hello!"));
+		jda.setStatus(OnlineStatus.ONLINE);
+		jda.addEventListeners(new Commands());
+		jda.build();
+	}
+	
+}
