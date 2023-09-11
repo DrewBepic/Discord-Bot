@@ -1,0 +1,292 @@
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+
+public class Commands extends ListenerAdapter {
+	public String prefix = "*";
+
+	@Override
+	public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+		String args[] = event.getMessage().getContentRaw().split(" ");
+		int loop;
+		String Message = "";
+		for(loop = 0; loop < args.length; loop++) {
+			Message = Message + args[loop];
+		}
+		if (args[0].equalsIgnoreCase(prefix + "test")) {
+			// event.getMessage().reply("This bot is working").queue();
+			// event.getChannel().sendMessage("This bot is working").queue();
+			event.getChannel().sendMessage("You are so cool!").queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "yo")) {
+			for(int x = 0; x < 6; x++) {
+				event.getChannel().sendMessage("Ratioed").queue();
+				synchronized(event) {
+				try {
+					event.wait(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				}
+			}
+		}
+		if (args[0].equalsIgnoreCase("$" + "help")) {
+			event.getChannel().sendMessage("I love you friend :wink:").queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "help")) {
+			EmbedBuilder eb = new EmbedBuilder();
+			eb.setTitle("Commands");
+			eb.setColor(9849600);
+			eb.addField("*test", "Lets you see if the bot is working", true);
+			eb.addField("*scary", "???", true);
+			eb.addField("*gunfloat [url] [max float]",
+					"Lets you see all of the floats lower than the float you entered on the first page of steam", true);
+			eb.addField("*teams [person 1] [person 2] [...] [person 10] [Number of teams]","Makes randomized teams for you with the nunber of teams you entered. Note: you can add as many people as you want",true);
+			eb.addField("*nuke [Amount of messages to be nuked]", "Nukes how ever many messages you want to make disappear", true);
+			event.getChannel().sendMessage(eb.build()).queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "nuke")) {
+				int NukeNum = Integer.parseInt(args[1]);
+				event.getChannel().deleteMessages(event.getChannel().getHistory().retrievePast(NukeNum + 1).complete()).queue();
+				event.getChannel().sendMessage("**" + NukeNum + " messages have been nuked**").queue();
+		}
+		if (Message.indexOf("TNVK") > -1) {
+			event.getChannel().sendMessage("Hello TNVK!").queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "scary")) {
+			try {
+				String PageAsString = readHTMLfromURL("https://tenor.com/search/scary-gifs");
+				int random = (int) (Math.random() * (56670 - 1 + 1) + 1);
+				String gif = PageAsString.substring(PageAsString.indexOf("https://c.tenor", random),
+						PageAsString.indexOf(".gif", PageAsString.indexOf("https://c.tenor", random))
+								+ ".gif".length());
+				EmbedBuilder eb = new EmbedBuilder();
+				eb.setColor(16711854);
+				eb.setImage(gif);
+				event.getChannel().sendMessage(eb.build()).queue();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (args[0].equalsIgnoreCase(prefix + "meme")) {
+			String phrase = "";
+			String image = args[1];
+			phrase = phrase + args[2];
+			for (int x = 3; x < args.length; x++) {
+				phrase = phrase + " " + args[x];
+				}
+			
+			event.getChannel().sendMessage("https://api.memegen.link/images/custom/_/"+ phrase.replace(' ', '_') + ".png?background=" + image).queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "funfact")) {
+			int random =(int) (Math.random() * (10 - 0) + 0);
+			if(random == 1) {
+				event.getChannel().sendMessage("https://api.memegen.link/images/custom/_/"+ "Fun Facts with BakerBot".replace(" ", "_") + ".png?background=" + "https://i.kym-cdn.com/photos/images/original/002/397/743/a53").queue();
+			}
+			if(random == 2) {
+				event.getChannel().sendMessage("https://api.memegen.link/images/custom/_/"+ "Rust is a very good game".replace(" ", "_") + ".png?background=" + "https://d2908q01vomqb2.cloudfront.net/91032ad7bbcb6cf72875e8e8207dcfba80173f7c/2019/11/22/DBD-Trapper-HighRes-copy.jpg").queue();
+			}
+		}
+		if (args[0].equalsIgnoreCase(prefix + "gunfloat")) {
+			String url = args[1];
+			double maxfloat = Double.parseDouble(args[2]);
+			// event.getMessage().reply(url + "").queue();
+			// event.getChannel().sendMessage(((event.retrievePast(1)).toString()).queue());
+			String PageAsString = null;
+			try {
+				PageAsString = readHTMLfromURL(url);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			int jsVariableIndex = PageAsString.indexOf("var g_rgAssets");
+			String InfoLineBeginning = PageAsString.substring(jsVariableIndex + "var g_rgAssets = ".length(),
+					PageAsString.length());
+			String InfoLineCut = InfoLineBeginning.substring(0, InfoLineBeginning.indexOf("var g_rgCurrency"));
+			InfoLineCut = InfoLineCut.trim();
+			InfoLineCut = InfoLineCut.substring(0, InfoLineCut.length() - 1);
+			for (int c = 1; c <= 10; c++) {
+				String id = PageAsString.substring(
+						PageAsString.indexOf("_image', 730, '2', '") + ("_image', 730, '2', '").length(),
+						PageAsString.indexOf("_image', 730, '2', '") + ("_image', 730, '2', '").length() + 11);
+				PageAsString = PageAsString.substring(PageAsString.indexOf("_image', 730, '2', '") + 1);
+				// Need to go through all guns on page
+				JSONObject json = new JSONObject(InfoLineCut);
+				JSONObject something = (JSONObject) json.get("730");
+				JSONObject somethingelse = (JSONObject) something.get("2");
+				JSONObject somethingsomethingelse = (JSONObject) somethingelse.get(id);
+				// String name = (String) somethingsomethingelse.get("market_name");
+				JSONArray BeforeBeforeURL = (JSONArray) somethingsomethingelse.get("actions");
+				JSONObject BeforeURL = (JSONObject) BeforeBeforeURL.get(0);
+				String EncryptedURL = (String) BeforeURL.get("link");
+				String URL = EncryptedURL.replace("%assetid%", id);
+				double floatvalue = 0;
+				try {
+					floatvalue = getfloat(URL);
+				} catch (JSONException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if (floatvalue <= maxfloat) {
+					// System.out.print(floatvalue + " ");
+					// System.out.println(name);
+					event.getChannel().sendMessage("Float =  " + floatvalue + "     #" + c).queue();
+				}
+			}
+		}
+		if (args[0].equalsIgnoreCase(prefix + "teams")) {
+
+			int players = args.length - 2;
+			ArrayList<String> people = new ArrayList<String>();
+			int c = 0;
+			int y;
+			int rngplayer = 0;
+			while (c < players) {
+				people.add(args[c + 1]);
+				c++;
+			}
+			int Numteams = Integer.parseInt(args[args.length - 1]);
+			// ppt = Players Per Team
+			int ppt = players / Numteams;
+			int extras = players % Numteams;
+			int x;
+			EmbedBuilder eb = new EmbedBuilder();
+			eb.setTitle("Teams");
+			eb.setColor(Color.GREEN);
+			String team = "";
+			int teamcounter = 1;
+			if (extras == 0) {
+				for (x = 0; x < Numteams; x++) {
+					team = "";
+					for (y = 0; y < ppt; y++) {
+						rngplayer = (int) Math.floor(Math.random() * ((people.size() - 1) - 0 + 1) + 0);
+						team = team + "       " + people.get(rngplayer);
+						people.remove(rngplayer);
+					}
+					eb.addField("Team " + (x + 1), team, true);
+				}
+			} else {
+				for (x = 0; x < Numteams; x++) {
+					team = "";
+					if (teamcounter <= extras) {
+						for (y = 0; y < ppt + 1; y++) {
+							rngplayer = (int) Math.floor(Math.random() * ((people.size() - 1) - 0 + 1) + 0);
+							team = team + "       " + people.get(rngplayer);
+							people.remove(rngplayer);
+						}
+						teamcounter++;
+					} else {
+						for (y = 0; y < ppt; y++) {
+							rngplayer = (int) Math.floor(Math.random() * ((people.size() - 1) - 0 + 1) + 0);
+							team = team + "       " + people.get(rngplayer);
+							people.remove(rngplayer);
+						}
+					}
+					eb.addField("Team " + (x + 1), team, true);
+				}
+			}
+			event.getChannel().sendMessage(eb.build()).queue();
+		}
+		if (args[0].equalsIgnoreCase(prefix + "rsvp")) {
+			File file = new File("C:\\Users\\drewb\\eclipse-workspace\\CSGOskins\\ActualDiscordBot\\frsvpfiles\\rsvp" + args[1] + ".txt");
+			Boolean result;
+			/*Date date = new Date();
+			@SuppressWarnings("deprecation")
+			int day = date.getDay();
+			if (day = )*/
+			try {
+				result = file.createNewFile();
+				if (result) {
+					FileWriter fr = new FileWriter(file, true);
+					fr.write(event.getAuthor().toString() + "\n");
+					event.getChannel().sendMessage("RSVP created and you have been added to it").queue();
+					fr.close();
+				} else {
+					FileWriter fr = new FileWriter(file, true);
+					fr.write(event.getAuthor().toString() + "\n");
+					event.getChannel().sendMessage("You have been added to " + "rsvp" + args[1]).queue();
+					fr.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		// CSGOFloat stuff
+
+	}
+
+	public static double getfloat(String url) throws JSONException, IOException {
+		String beginning = "https://api.csgofloat.com/?url=";
+		JSONObject OnCsgoFloat = readJsonFromUrl(beginning + url);
+		JSONObject iteminfo = (JSONObject) OnCsgoFloat.get("iteminfo");
+		double floatvalue = iteminfo.getDouble("floatvalue");
+		return floatvalue;
+	}
+
+	private static String readAll(Reader rd) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		int cp;
+		while ((cp = rd.read()) != -1) {
+			sb.append((char) cp);
+		}
+		return sb.toString();
+	}
+
+	public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+		InputStream is = new URL(url).openStream();
+		try {
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+			String jsonText = readAll(rd);
+			JSONObject json = new JSONObject(jsonText);
+			return json;
+		} finally {
+			is.close();
+		}
+	}
+
+	public static String readHTMLfromURL(String url) throws MalformedURLException, IOException {
+		InputStream is = new URL(url).openStream();
+		try {
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+			String jsonText = readAll(rd);
+			return jsonText;
+		} finally {
+			is.close();
+		}
+	}
+	/*private synchronized void waitMethod() {
+		 
+		while (true) {
+			try {
+				this.wait(20);
+			} catch (InterruptedException e) {
+ 
+				e.printStackTrace();
+			}
+		}
+ 
+	}*/
+}
